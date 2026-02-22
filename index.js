@@ -1,7 +1,7 @@
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+require("dotenv").config();
+const express = require("express");
+const cors = require("cors");
+const { MongoClient, ServerApiVersion } = require("mongodb");
 const app = express();
 const port = process.env.PORT || 5000;
 
@@ -18,27 +18,39 @@ const client = new MongoClient(uri, {
     version: ServerApiVersion.v1,
     strict: true,
     deprecationErrors: true,
-  }
+  },
 });
 
 async function run() {
   try {
+    await client.connect(); 
 
-    const db = client.db("testDB");
-    const usersCollection = db.collection("users");
+    const db = client.db("kicksDB");
+    const dropsCollection = db.collection("dropsCollection");
 
     // Test Route
-    app.get('/', (req, res) => {
-      res.send('Server is running');
+    app.get("/", (req, res) => {
+      res.send("Server is running");
     });
 
-    // Example API
-    app.post('/users', async (req, res) => {
-      const user = req.body;
-      const result = await usersCollection.insertOne(user);
+    app.get("/drops", async (req, res) => {
+      try {
+        const dropsProducts = await dropsCollection.find().toArray();
+        res.send(dropsProducts);
+      } catch (error) {
+        console.log(error);
+        res.status(500).send({ message: "Server Error" });
+      }
+    });
+
+    app.post("/products", async (req, res) => {
+      const products = req.body;
+      const result = await productsCollection.insertMany(products);
       res.send(result);
     });
 
+
+    console.log("MongoDB connected successfully");
   } finally {
   }
 }
@@ -46,5 +58,5 @@ async function run() {
 run().catch(console.dir);
 
 app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
+  console.log(`Kicks running on port ${port}`);
 });
